@@ -1,44 +1,43 @@
+
 <?php
 $servername = "localhost";
-$username = "id8972136_root";
-$password = "root001";
-$database = "id8972136_akademik";
-
+$username = "id8972136_toor";
+$password = "toor001";
+$database = "id8972136_rujukan";
 // Create connection
 $conn = new mysqli($servername, $username, $password, $database);
-
 // Check connection
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-$customers = $conn->query("SELECT * FROM customer");
-echo "<style>table, tr, td, th{ border: 1px solid #ddd; border-collapse: collapse; padding: 4px}</style>";
-echo "<table><tr><th>Nama</th><th>Jenis Kelamin</th><th>Alamat</th></th>";
-if ($customers->num_rows > 0) {
-    while($row = $customers->fetch_assoc()) {
-        echo "<tr><td>$row[nama]</td><td>$row[gender]</td><td>$row[alamat]</td></tr>";
-    }
-}
-echo "</table><br/>";
-
-$mahasiswas = $conn->query("SELECT * FROM mahasiswa");
-echo "<table><tr><th>NIM</th><th>Nama</th><th>Prodi</th></th>";
-if ($mahasiswas->num_rows > 0) {
-    while($row = $mahasiswas->fetch_assoc()) {
-        echo "<tr><td>$row[nim]</td><td>$row[nama]</td><td>$row[prodi]</td></tr>";
-    }
-}
-echo "</table><br/>";
-
-$rows = $conn->query("SELECT n.thakd,n.nim,n.kdmk,n.nilai,m.nama,m.prodi,mk.nmmk,mk.sks FROM nilai n LEFT JOIN mahasiswa m ON n.nim=m.nim LEFT JOIN matakuliah mk ON n.kdmk=mk.kdmk WHERE m.nama IS NOT NULL AND mk.nmmk IS NOT NULL");
-echo "<table><tr><th>TH</th><th>NIM</th><th>Nama</th><th>Prodi</th><th>Makul</th><th>SKS</th><th>Nilai</th></th>";
+$rows = $conn->query("SELECT id, nama, alamat FROM puskesmas LIMIT 5");
+$clinics = array();
 if ($rows->num_rows > 0) {
     while($row = $rows->fetch_assoc()) {
-        echo "<tr><td>$row[thakd]</td><td>$row[nim]</td><td>$row[nama]</td><td>$row[prodi]</td><td>$row[nmmk]</td><td>$row[sks]</td><td>$row[nilai]</td></tr>";
+        $clinics[] = $row;
     }
 }
-echo "</table>";
+
+$rows = $conn->query("SELECT u.id, p.nama as puskesmas, u.token as fcm_token, u.email, u.nama, u.alamat FROM user u LEFT JOIN puskesmas p ON u.id_puskesmas=p.id LIMIT 5");
+$users = array();
+if ($rows->num_rows > 0) {
+    while($row = $rows->fetch_assoc()) {
+        $users[] = $row;
+    }
+}
+
+$rows = $conn->query("SELECT r.kode, r.tanggal, r.nik, r.nama, r.jenis_kelamin, r.usia, r.alamat, r.kondisi, p.nama as puskesmas, u.nama as perawat FROM rujukan r LEFT JOIN user u ON r.id_user=u.id LEFT JOIN puskesmas p ON u.id_puskesmas=p.id LIMIT 5");
+$docs = array();
+if ($rows->num_rows > 0) {
+    while($row = $rows->fetch_assoc()) {
+        $docs[] = $row;
+    }
+}
+
+echo "<pre>";
+echo json_encode(array('success' => true, 'message' => 'all data limited to 5', 'perawat' => $users, 'puskesmas' => $clinics, 'rujukan' => $docs), JSON_PRETTY_PRINT);
+echo "</pre>";
 
 if ($conn){
     $conn->close();
